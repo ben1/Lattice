@@ -27,5 +27,7 @@ If new files are added to the project outside of Visual Studio, the solution can
 # License
 
 Each library inside the 'External' folder has its own license which must be adhered to.
+
 The build files were based on build files from FastBuild, and the Main.cpp was copied and modified from the example in imgui.
+
 Other code is covered by the 'LICENSE.TXT' in this folder.
