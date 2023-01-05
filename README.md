@@ -16,6 +16,8 @@ Currently Visual Studio on Windows is supported, but GCC/Clang/OSX/Linux would b
 
 ## Visual Studio
 
+**Note**: You may need to edit the files in Build/VisualStudio to set the VS version you have installed.
+
 1. To generate the solution, run:
 > External\FastBuild\1.08\Bin\win32-x64\FBuild.exe solution
 2. Open the solution in 'tmp\VisualStudio' and hit F5.
