@@ -1,0 +1,103 @@
+// App
+//------------------------------------------------------------------------------
+{
+    .ProjectName        = 'App'
+    .ProjectPath        = 'Code/App'
+
+    // Executable
+    //--------------------------------------------------------------------------
+    .ProjectConfigs = {}
+    ForEach( .BuildConfig in .BuildConfigs )
+    {
+        Using( .BuildConfig )
+        .OutputBase + '/$Platform$-$BuildConfigName$'
+
+        // Unity
+        //--------------------------------------------------------------------------
+        Unity( '$ProjectName$-Unity-$Platform$-$BuildConfigName$' )
+        {
+            .UnityInputPath             = '$ProjectPath$/'
+            .UnityOutputPath            = '$OutputBase$/$ProjectPath$/'
+            .UnityOutputPattern         = '$ProjectName$_Unity*.cpp'
+        }
+
+        // Library
+        //--------------------------------------------------------------------------
+        ObjectList( '$ProjectName$-Lib-$Platform$-$BuildConfigName$' )
+        {
+            // Input (Unity)
+            .CompilerInputUnity         = '$ProjectName$-Unity-$Platform$-$BuildConfigName$'
+
+            // Output
+            .CompilerOutputPath         = '$OutputBase$/$ProjectPath$/'
+
+            .CompilerOptions            + '$imguiIncludePaths$'
+        }
+
+        // Windows Manifest
+        //--------------------------------------------------------------------------
+        #if __WINDOWS__
+            .ManifestFile = '$OutputBase$/$ProjectPath$/$ProjectName$$ExeExtension$.manifest.tmp'
+            CreateManifest( '$ProjectName$-Manifest-$Platform$-$BuildConfigName$'
+                            .ManifestFile )
+        #endif
+
+        // Executable
+        //--------------------------------------------------------------------------
+        Executable( '$ProjectName$-Exe-$Platform$-$BuildConfigName$' )
+        {
+            .Libraries                  = {
+                                            '$ProjectName$-Lib-$Platform$-$BuildConfigName$'
+                                            //'Core-Lib-$Platform$-$BuildConfigName$',
+                                            'FreeType-Lib-$Platform$-$BuildConfigName$',
+                                            'imgui-Lib-$Platform$-$BuildConfigName$',
+                                            'LZ4-Lib-$Platform$-$BuildConfigName$',
+                                            'SDL-Lib-$Platform$-$BuildConfigName$'
+                                          }
+            .LinkerOutput               = '$OutputBase$/$ProjectPath$/App$ExeExtension$'
+            #if __WINDOWS__
+                .LinkerOptions              + ' /SUBSYSTEM:WINDOWS'
+                                            + ' Advapi32.lib'
+                                            + ' gdi32.lib'
+                                            + ' imm32.lib'
+                                            + ' kernel32.lib'
+                                            + ' ole32.lib'
+                                            + ' oleaut32.lib'
+                                            + ' opengl32.lib'
+                                            + ' setupapi.lib'
+                                            + ' Shell32.lib'
+                                            + ' uuid.lib'
+                                            + ' User32.lib'
+                                            + ' version.lib'
+                                            + ' winmm.lib'
+                                            + ' Ws2_32.lib'
+                                            + .CRTLibs_Static
+
+                // Manifest
+                .LinkerAssemblyResources    = .ManifestFile
+                .LinkerOptions              + ' /MANIFEST:EMBED'
+                                            + ' /MANIFESTINPUT:%3'
+            #endif
+        }
+        Alias( '$ProjectName$-$Platform$-$BuildConfigName$' )
+        {
+            .Targets = { '$ProjectName$-Exe-$Platform$-$BuildConfigName$' }
+        }
+        ^'Targets_$Platform$_$BuildConfigName$' + { '$ProjectName$-$Platform$-$BuildConfigName$' }
+
+        #if __WINDOWS__
+            .ProjectConfig              = [ Using( .'Project_$Platform$_$BuildConfigName$' ) .Target = '$ProjectName$-$Platform$-$BuildConfigName$' ]
+            ^ProjectConfigs             + .ProjectConfig
+        #endif
+    }
+
+    // Aliases
+    //--------------------------------------------------------------------------
+    CreateCommonAliases( .ProjectName )
+
+    // Visual Studio Project Generation
+    //--------------------------------------------------------------------------
+    #if __WINDOWS__
+        CreateVCXProject_Exe( .ProjectName, .ProjectPath, .ProjectConfigs )
+    #endif
+}

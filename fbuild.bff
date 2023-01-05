@@ -1,0 +1,340 @@
+// FASTBuild
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// Helper Includes
+//------------------------------------------------------------------------------
+// Platforms
+#include "Build/VisualStudio/VisualStudio.bff"
+#include "Build/Windows/Windows.bff"
+// Helpers
+#include "Build/HelperFunctions.bff"
+
+//------------------------------------------------------------------------------
+// Settings
+//------------------------------------------------------------------------------
+Settings
+{
+    #if __WINDOWS__
+        #import TMP
+        .Environment    = { "PATH=$VS_PATH$;$WINDOWS_SDK_2019_PATH$",
+                            "TMP=$TMP$",
+                            "SystemRoot=C:\Windows" }
+    #endif
+}
+
+//------------------------------------------------------------------------------
+// Config Defines
+//------------------------------------------------------------------------------
+.Debug_Config =
+[
+    .CompilerOptions                = ' -DDEBUG -DPROFILING_ENABLED'
+    .CompilerOptionsC               = .CompilerOptions
+    .BuildConfigName                = 'Debug'
+]
+.Analyze_Config =
+[
+    .CompilerOptions                = ' -DDEBUG -DPROFILING_ENABLED -DANALYZE'
+    .CompilerOptionsC               = .CompilerOptions
+    .BuildConfigName                = 'Analyze'
+]
+.Profile_Config =
+[
+    .CompilerOptions                = ' -DRELEASE -DPROFILING_ENABLED'
+    .CompilerOptionsC               = .CompilerOptions
+    .BuildConfigName                = 'Profile'
+]
+.Release_Config =
+[
+    .CompilerOptions                = ' -DRELEASE'
+    .CompilerOptionsC               = .CompilerOptions
+    .CompilerOptionsDeoptimized     = .CompilerOptions
+    .BuildConfigName                = 'Release'
+]
+.ASan_Config =
+[
+    .CompilerOptions                = ' -DRELEASE'
+                                    + ' -fsanitize=address -fno-omit-frame-pointer'
+    .CompilerOptionsC               = .CompilerOptions
+    .LinkerOptions                  = ' -fsanitize=address'
+    .BuildConfigName                = 'ASan'
+]
+.MSan_Config =
+[
+    .CompilerOptions                = ' -DRELEASE'
+                                    + ' -fsanitize=memory -fsanitize-memory-track-origins -fno-omit-frame-pointer'
+    .CompilerOptionsC               = .CompilerOptions
+    .LinkerOptions                  = ' -fsanitize=memory -LExternal/MSan'
+    .BuildConfigName                = 'MSan'
+]
+.TSan_Config =
+[
+    .CompilerOptions                = ' -DRELEASE'
+                                    + ' -fsanitize=thread'
+    .CompilerOptionsC               = .CompilerOptions
+    .CompilerOptionsPCH             = .CompilerOptions
+    .LinkerOptions                  = ' -fsanitize=thread'
+    .BuildConfigName                = 'TSan'
+]
+
+//------------------------------------------------------------------------------
+// Optimizations (MSVC)
+//------------------------------------------------------------------------------
+#if __WINDOWS__
+    .Debug_Optimizations_MSVC =
+    [
+        .CompilerOptions                = ' /MTd /Od /RTC1 /GS /Oy- /GR-'
+        .CompilerOptionsC               = .CompilerOptions
+    ]
+    .Analyze_Optimizations_MSVC =
+    [
+        Using( .Debug_Optimizations_MSVC )
+        .CompilerOptions                + .StaticAnalysisOptions
+        .CompilerOptionsC               = .CompilerOptions
+    ]
+    .Profile_Optimizations_MSVC =
+    [
+        .CompilerOptions                = ' /MT /Ox /Oy /Oi /GS- /GF /Gy /Gw /GR- /Zo'
+        .CompilerOptionsC               = .CompilerOptions
+        .LinkerOptions                  = ' /OPT:REF,ICF'
+    ]
+    .Release_Optimizations_MSVC =
+    [
+        Using( .Profile_Optimizations_MSVC )
+        .CompilerOptionsDeoptimized     = .CompilerOptions
+                                        - ' /Ox'
+                                        + ' /Od'
+    ]
+#endif
+
+// X64
+//------------------------------------------------------------------------------
+#if __WINDOWS__
+    .X64BaseConfig              = .ToolChain_VS_Windows_X64
+                                + .Windows10_SDK_X64
+    .X64DebugConfig             = .X64BaseConfig
+                                + .Debug_Config
+                                + .Debug_Optimizations_MSVC
+    .X64AnalyzeConfig           = .X64BaseConfig
+                                + .Analyze_Config
+                                + .Analyze_Optimizations_MSVC
+    .X64ReleaseConfig           = .X64BaseConfig
+                                + .Release_Config
+                                + .Release_Optimizations_MSVC
+    .X64ProfileConfig           = .X64BaseConfig
+                                + .Profile_Config
+                                + .Profile_Optimizations_MSVC
+    .X64ASanConfig              = .X64BaseConfig
+                                + .ASan_Config
+                                + .Release_Optimizations_MSVC
+    .X64TSanConfig              = .X64BaseConfig
+                                + .TSan_Config
+                                + .Release_Optimizations_MSVC
+#endif
+
+//------------------------------------------------------------------------------
+// VisualStudio Project Generation
+//------------------------------------------------------------------------------
+#include "External/FastBuild/FastBuildPaths.bff" // For FBuildExe
+#if __WINDOWS__
+    .ProjectCommon =
+    [
+        .ProjectBuildCommand        = 'cd ^$(SolutionDir)\..\..\ &amp; $FBuildExe$ -vs -dist -monitor -cache ^$(ProjectName)-^$(Configuration)'
+        .ProjectRebuildCommand      = 'cd ^$(SolutionDir)\..\..\ &amp; $FBuildExe$ -vs -dist -monitor -cache -clean ^$(ProjectName)-^$(Configuration)'
+        .OutputDirectory            = '^$(SolutionDir)\Temp'
+        .IntermediateDirectory      = '^$(SolutionDir)\Temp'
+        .BuildLogFile               = '^$(SolutionDir)\Temp\^$(ProjectName)-^$(Configuration).log'
+        .Platform                   = 'x64'
+        .PlatformToolset            = '$VS_PlatformToolset$'
+    ]
+
+    .Project_x64_Debug        = [ Using( .ProjectCommon ) .SolutionPlatform = 'x64'         .SolutionConfig = 'Debug'   .Config = '$SolutionPlatform$-$SolutionConfig$' ]
+    .Project_x64_Analyze      = [ Using( .ProjectCommon ) .SolutionPlatform = 'x64'         .SolutionConfig = 'Analyze' .Config = '$SolutionPlatform$-$SolutionConfig$' ]
+    .Project_x64_Profile      = [ Using( .ProjectCommon ) .SolutionPlatform = 'x64'         .SolutionConfig = 'Profile' .Config = '$SolutionPlatform$-$SolutionConfig$' ]
+    .Project_x64_Release      = [ Using( .ProjectCommon ) .SolutionPlatform = 'x64'         .SolutionConfig = 'Release' .Config = '$SolutionPlatform$-$SolutionConfig$' ]
+    .Project_x64_ASan         = [ Using( .ProjectCommon ) .SolutionPlatform = 'x64'         .SolutionConfig = 'ASan'    .Config = '$SolutionPlatform$-$SolutionConfig$' ]
+    .Project_x64_TSan         = [ Using( .ProjectCommon ) .SolutionPlatform = 'x64'         .SolutionConfig = 'TSan'    .Config = '$SolutionPlatform$-$SolutionConfig$' ]
+#endif
+
+// Configurations
+//------------------------------------------------------------------------------
+#if __WINDOWS__
+    .BuildConfigs               = { .X64DebugConfig, .X64AnalyzeConfig, .X64ProfileConfig, .X64ReleaseConfig
+                                    .X64ASanConfig, .X64TSanConfig
+                                  }
+#endif
+
+.Targets_x64_Debug = {}
+.Targets_x64_Analyze = {}
+.Targets_x64_Profile = {}
+.Targets_x64_Release = {}
+.Targets_x64_ASan = {}
+.Targets_x64_TSan = {}
+
+// Global Output
+.OutputBase = 'tmp'
+
+// Include Projects
+//------------------------------------------------------------------------------
+// External
+#include "External/FastBuild/Core.bff"
+#include "External/FreeType/FreeType.bff"
+#include "External/LZ4/LZ4.bff"
+#include "External/SDL/SDL.bff"
+#include "External/imgui/imgui.bff"
+
+// App
+#include "Code/App/App.bff"
+
+// Aliases : All-$Platform$-$Config$
+//------------------------------------------------------------------------------
+ForEach( .BuildConfig in .BuildConfigs )
+{
+    Using( .BuildConfig )
+
+    Alias( 'All-$Platform$-$BuildConfigName$' ) { .Targets = .'Targets_$Platform$_$BuildConfigName$' }
+}
+
+// Exes
+//------------------------------------------------------------------------------
+Alias( 'Exes' )
+{
+    .Targets    = { 'App-Debug',   'App-Profile', 'App-Release' }
+}
+
+// Aliases : All-$Platform$
+//------------------------------------------------------------------------------
+.Platforms = { 'x64' }
+.PlatformConfigs_x64           = { 'Debug', 'Analyze', 'Profile', 'Release', 'ASan', 'TSan' }
+ForEach( .Platform in .Platforms )
+{
+    Alias( 'All-$Platform$' )
+    {
+        .Targets = {}
+        ForEach( .Config in .'PlatformConfigs_$Platform$' )
+        {
+            // TODO:B Exclude windows configs that don't work yet
+            // x64 ASan config - not working yet
+            // x64 TSan config - not working yet (not supported by MSVC on Windows)
+            If( !( ( .Platform == 'x64' ) && ( .Config == 'ASan' ) ) &&
+                !( ( .Platform == 'x64' ) && ( .Config == 'TSan' ) ) )
+            {
+                ^Targets + { 'All-$Platform$-$Config$' }
+            }
+        }
+    }
+}
+
+// Aliases : All
+//------------------------------------------------------------------------------
+#if __WINDOWS__
+    Alias( 'All' )
+    {
+        .Targets        = { 'All-x64'
+                          }
+    }
+#endif
+
+
+// Aliases : Tests
+//------------------------------------------------------------------------------
+#if __WINDOWS__
+    Alias( 'Tests' )
+    {
+        .Targets        = { 'CoreTest-RunTest-x64-Debug',
+                            'CoreTest-RunTest-x64-Release'
+                          }
+    }
+#endif
+
+// Aliases : All+Tests
+//------------------------------------------------------------------------------
+Alias( 'All+Tests' )
+{
+    .Targets        = { 'All', 'Tests' }
+}
+
+// Visual Studio Solution
+//------------------------------------------------------------------------------
+#if __WINDOWS__
+    // 'All' - Compile everything
+    {
+        .ExtraOptions   = [ .ProjectInputPaths = {} ]
+        .ProjectConfigs = {}
+        ForEach( .BuildConfig in .BuildConfigs )
+        {
+            Using( .BuildConfig )
+            .ProjectConfig          = [ Using( .'Project_$Platform$_$BuildConfigName$' ) .Target = 'All-$Platform$-$BuildConfigName$' ]
+            ^ProjectConfigs         + .ProjectConfig
+        }
+        CreateVCXProject_Lib( 'All', '/', .ProjectConfigs, .ExtraOptions )
+    }
+
+    // 'Build' - Browse Platform/Compiler build files
+    {
+        .ExtraOptions   = [ .ProjectAllowedFileExtensions = '*.bff' ]
+        .ProjectConfigs = {}
+        ForEach( .BuildConfig in .BuildConfigs )
+        {
+            Using( .BuildConfig )
+            .ProjectConfig          = [ Using( .'Project_$Platform$_$BuildConfigName$' ) ]
+            ^ProjectConfigs         + .ProjectConfig
+        }
+        CreateVCXProject_Lib( 'Build', '.', .ProjectConfigs, .ExtraOptions )
+    }
+
+    // 'UpdateSolution' - Regenerate projects/solutions
+    {
+        .ExtraOptions   = [ .ProjectInputPaths = {} ]
+        .ProjectConfigs = {}
+        ForEach( .BuildConfig in .BuildConfigs )
+        {
+            Using( .BuildConfig )
+            .ProjectConfig          = [ 
+                                        Using( .'Project_$Platform$_$BuildConfigName$' )
+                                        .ProjectBuildCommand    = 'cd ^$(SolutionDir)..\..\ &amp; $FBuildExe$ solution -vs'
+                                        .ProjectRebuildCommand  = 'cd ^$(SolutionDir)..\..\ &amp; $FBuildExe$ solution -vs -clean'
+                                      ]
+            ^ProjectConfigs         + .ProjectConfig
+        }
+        CreateVCXProject_Lib( 'UpdateSolution', '/', .ProjectConfigs, .ExtraOptions )
+    }
+
+    VSSolution( 'solution' )
+    {
+        .SolutionOutput     = '$OutputBase$/VisualStudio/Lattice.sln'
+        .SolutionProjects   = { 'App-proj' }
+        .SolutionBuildProject = 'All-proj'
+        .SolutionConfigs = {}
+        ForEach( .BuildConfig in .BuildConfigs )
+        {
+            Using( .BuildConfig )
+            .SolutionConfig         = [ Using( .'Project_$Platform$_$BuildConfigName$' ) ]
+            ^SolutionConfigs        + .SolutionConfig
+        }
+
+        .SolutionVisualStudioVersion = '$VS_SolutionVersion$'
+
+        // Work around for Visual Studio F5 behaviour up-to-date check
+        .Deps               = [
+                                .Projects = {  'App-proj' } // 'CoreTest-proj' ,
+                                .Dependencies = { 'All-proj' }
+                              ]
+        .SolutionDependencies = { .Deps }
+
+        .Folder_Build =
+        [
+            .Path           = 'Build'
+            .Projects       = { 'All-proj', 'Build-proj', 'UpdateSolution-proj' }
+        ]
+        .Folder_External =
+        [
+            .Path           = 'External'
+            // 'CoreTest-proj', 'TestFramework-proj', 
+            .Projects       = { 'Core-proj', 'FreeType-proj', 'imgui-proj', 'LZ4-proj', 'SDL-proj' }
+        ]
+        .SolutionFolders    = { .Folder_Build, .Folder_External }
+    }
+#endif
+
+//------------------------------------------------------------------------------

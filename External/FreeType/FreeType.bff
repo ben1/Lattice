@@ -1,0 +1,132 @@
+// FreeType
+//------------------------------------------------------------------------------
+.FreeTypeBasePath        = 'External/FreeType/2.12.1'
+.FreeTypeIncludePaths    = ' "-I$FreeTypeBasePath$/include"'
+{
+    .ProjectName        = 'FreeType'
+    .ProjectPath        = '$FreeTypeBasePath$'
+
+    // Target/Compiler specific options
+    .FreeTypeOptions_x64     = [
+        .FreeTypeCompilerOptions = ' /DFT2_BUILD_LIBRARY'
+                                 + ' -O2'     // Compile with optimizations even in debug to improve performance
+                                 + ' /wd4065' // switch has no labels
+                                 + ' /wd4242' // possible loss of data
+                                 + ' /wd4244' // possible loss of data
+                                 + ' /wd4267' // possible loss of data
+                                 + ' /wd4701' // uninitialized variable used
+                                 + ' /wd4996' // unsafe function
+                                //+ ' /wd6239'    // (<non-zero constant> && <expression>) always evaluates to the result of <expression>.  Did you intend to use the bitwise-and operator?
+                                //+ ' /wd6240'    // (<expression> && <non-zero constant>) always evaluates to the result of <expression>.  Did you intend to use the bitwise-and operator?
+                                //+ ' /wd6262'    // Function uses '%u' bytes of stack:  exceeds /analyze:stacksize '16384'.  Consider moving some data to heap.
+                                //+ ' /wd6326'    // Potential comparison of a constant with another constant.
+                                //+ ' /wd6385'    // Reading invalid data from 'v':  the readable size is '_Old_5`2' bytes, but '4' bytes may be read.: Lines: 427, 430, 432, 436, 437, 438, 439
+                                //+ ' /wd28251'   // warning C28251: Inconsistent annotation for '_setjmp': this instance has no annotations. See <no file>(0).
+                                //+ ' /wd26051'   // Function with irreducible control flow graph.
+                          ]
+    // Library
+    //--------------------------------------------------------------------------
+    .ProjectConfigs = {}
+    ForEach( .BuildConfig in .BuildConfigs )
+    {
+        Using( .BuildConfig )
+
+        .OutputBase + '\$Platform$-$BuildConfigName$'
+
+        Using( ."FreeTypeOptions_$Platform$" )
+
+        // Static Library
+        ObjectList( '$ProjectName$-Lib-$Platform$-$BuildConfigName$' )
+        {
+            // Input - Only build specific files we use
+            .CompilerInputFiles         = {
+                                            '$FreeTypeBasePath$/src/autofit/autofit.c'
+                                            '$FreeTypeBasePath$/src/base/ftbase.c'
+                                            '$FreeTypeBasePath$/src/base/ftbbox.c'
+                                            '$FreeTypeBasePath$/src/base/ftbdf.c'
+                                            '$FreeTypeBasePath$/src/base/ftbitmap.c'
+                                            '$FreeTypeBasePath$/src/base/ftcid.c'
+                                            '$FreeTypeBasePath$/src/base/ftdebug.c'
+                                            '$FreeTypeBasePath$/src/base/ftfstype.c'
+                                            '$FreeTypeBasePath$/src/base/ftgasp.c'
+                                            '$FreeTypeBasePath$/src/base/ftglyph.c'
+                                            '$FreeTypeBasePath$/src/base/ftgxval.c'
+                                            '$FreeTypeBasePath$/src/base/ftinit.c'
+                                            '$FreeTypeBasePath$/src/base/ftmm.c'
+                                            '$FreeTypeBasePath$/src/base/ftotval.c'
+                                            '$FreeTypeBasePath$/src/base/ftpatent.c'
+                                            '$FreeTypeBasePath$/src/base/ftpfr.c'
+                                            '$FreeTypeBasePath$/src/base/ftstroke.c'
+                                            '$FreeTypeBasePath$/src/base/ftsynth.c'
+                                            '$FreeTypeBasePath$/src/base/ftsystem.c'
+                                            '$FreeTypeBasePath$/src/base/fttype1.c'
+                                            '$FreeTypeBasePath$/src/base/ftwinfnt.c'
+                                            '$FreeTypeBasePath$/src/bdf/bdf.c'
+                                            '$FreeTypeBasePath$/src/cache/ftcache.c'
+                                            '$FreeTypeBasePath$/src/cff/cff.c'
+                                            '$FreeTypeBasePath$/src/cid/type1cid.c'
+                                            '$FreeTypeBasePath$/src/gzip/ftgzip.c'
+                                            '$FreeTypeBasePath$/src/lzw/ftlzw.c'
+                                            '$FreeTypeBasePath$/src/pcf/pcf.c'
+                                            '$FreeTypeBasePath$/src/pfr/pfr.c'
+                                            '$FreeTypeBasePath$/src/psaux/psaux.c'
+                                            '$FreeTypeBasePath$/src/pshinter/pshinter.c'
+                                            '$FreeTypeBasePath$/src/psnames/psmodule.c'
+                                            '$FreeTypeBasePath$/src/raster/raster.c'
+                                            '$FreeTypeBasePath$/src/sdf/sdf.c'
+                                            '$FreeTypeBasePath$/src/sfnt/sfnt.c'
+                                            '$FreeTypeBasePath$/src/svg/svg.c'
+                                            '$FreeTypeBasePath$/src/smooth/smooth.c'
+                                            '$FreeTypeBasePath$/src/truetype/truetype.c'
+                                            '$FreeTypeBasePath$/src/type1/type1.c'
+                                            '$FreeTypeBasePath$/src/type42/type42.c'
+                                            '$FreeTypeBasePath$/src/winfonts/winfnt.c'
+                                          }
+
+            // Options
+            .CompilerOptions            = .CompilerOptionsC
+                                        + .FreeTypeIncludePaths
+                                        + .FreeTypeCompilerOptions
+
+                                        #if __WINDOWS__
+                                            // Remove flags that disable opimizations
+                                            - ' /Od'
+                                            - ' /RTC1'
+                                            // Disable clang-cl static analysis if enabled for this config
+                                            // (we won't fix warnings in 3rd party code)
+                                            - ' --analyze'
+                                        #else
+                                            - ' -O0'
+                                        #endif
+                                        
+                                        - ' -Wall'
+                                        - ' -Werror'
+                                        - ' -Wfatal-errors'
+                                        - ' -Wextra'
+                                        - ' -Wshadow'
+                                        - ' -Weverything'
+
+            // Output
+            .CompilerOutputPath         = '$OutputBase$/External/$ProjectName$/'
+        }
+        Alias( '$ProjectName$-$Platform$-$BuildConfigName$' ) { .Targets = '$ProjectName$-Lib-$Platform$-$BuildConfigName$' }
+
+        #if __WINDOWS__
+            .ProjectConfig              = [ Using( .'Project_$Platform$_$BuildConfigName$' ) .Target = '$ProjectName$-$Platform$-$BuildConfigName$' ]
+            ^ProjectConfigs             + .ProjectConfig
+        #endif
+    }
+
+    // Aliases
+    //--------------------------------------------------------------------------
+    CreateCommonAliases( .ProjectName )
+
+    // Visual Studio Project Generation
+    //--------------------------------------------------------------------------
+    #if __WINDOWS__
+        .ExtraOptions   = [
+                            .ProjectFiles = 'External/FreeType/FreeType.bff'
+                          ]
+        CreateVCXProject_Lib( .ProjectName, .ProjectPath, .ProjectConfigs, .ExtraOptions )
+    #endif
+}

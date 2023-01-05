@@ -1,0 +1,61 @@
+// Core
+//------------------------------------------------------------------------------
+{
+    .ProjectName        = 'Core'
+    .ProjectPath        = '$FastBuildBasePath$/Code/Core'
+
+    // Library
+    //--------------------------------------------------------------------------
+    .ProjectConfigs = {}
+    ForEach( .BuildConfig in .BuildConfigs )
+    {
+        Using( .BuildConfig )
+        .OutputBase + '\$Platform$-$BuildConfigName$'
+        
+        // MemTracker is built by iteself to control init order
+        .MemTrackerFile                 = '$ProjectPath$/Mem/MemTracker.cpp'
+
+        // Unity
+        //--------------------------------------------------------------------------
+        Unity( '$ProjectName$-Unity-$Platform$-$BuildConfigName$' )
+        {
+            .UnityInputPath             = '$ProjectPath$/'
+            .UnityOutputPath            = '$OutputBase$/$ProjectPath$/'
+            .UnityOutputPattern         = '$ProjectName$_Unity*.cpp'
+            .UnityInputExcludePath      = '$ProjectPath$/CoreTest/' // Exclude Tests
+            .UnityInputExcludedFiles    = .MemTrackerFile
+        }
+
+        // Library
+        //--------------------------------------------------------------------------
+        ObjectList( '$ProjectName$-Lib-$Platform$-$BuildConfigName$' )
+        {
+            // Input
+            .CompilerInputUnity         = '$ProjectName$-Unity-$Platform$-$BuildConfigName$'
+            .CompilerInputFiles         = .MemTrackerFile
+
+            // Output
+            .CompilerOutputPath         = '$OutputBase$/$ProjectPath$/'
+            
+            .CompilerOptions            + '$FastBuildIncludes$'
+        }
+        Alias( '$ProjectName$-$Platform$-$BuildConfigName$' ) { .Targets = '$ProjectName$-Lib-$Platform$-$BuildConfigName$' }
+        ^'Targets_$Platform$_$BuildConfigName$' + { '$ProjectName$-$Platform$-$BuildConfigName$' }
+
+        #if __WINDOWS__
+            .ProjectConfig              = [ Using( .'Project_$Platform$_$BuildConfigName$' ) .Target = '$ProjectName$-$Platform$-$BuildConfigName$' ]
+            ^ProjectConfigs             + .ProjectConfig
+        #endif
+    }
+
+    // Aliases
+    //--------------------------------------------------------------------------
+    CreateCommonAliases( .ProjectName )
+
+    // Visual Studio Project Generation
+    //--------------------------------------------------------------------------
+    #if __WINDOWS__
+        .ExtraOptions = [ .ProjectInputPathsExclude = { '$ProjectPath$\CoreTest\' } ]
+        CreateVCXProject_Lib( .ProjectName, .ProjectPath, .ProjectConfigs, .ExtraOptions )
+    #endif
+}

@@ -1,0 +1,102 @@
+// imgui
+//------------------------------------------------------------------------------
+.imguiBasePath        = 'External/imgui/docking-c191faf'
+.imguiIncludePaths    = ' "-I$imguiBasePath$"'
+                      + ' "-I$imguiBasePath$/backends"'
+                      + '$SDLIncludePaths$'
+{
+    .ProjectName        = 'imgui'
+    .ProjectPath        = '$imguiBasePath$'
+
+    // Target/Compiler specific options
+    .imguiOptions_x64     = [
+        .imguiCompilerOptions = ' /wd6239'    // (<non-zero constant> && <expression>) always evaluates to the result of <expression>.  Did you intend to use the bitwise-and operator?
+                            + ' /wd6240'    // (<expression> && <non-zero constant>) always evaluates to the result of <expression>.  Did you intend to use the bitwise-and operator?
+                            + ' /wd6262'    // Function uses '%u' bytes of stack:  exceeds /analyze:stacksize '16384'.  Consider moving some data to heap.
+                            + ' /wd6326'    // Potential comparison of a constant with another constant.
+                            + ' /wd6385'    // Reading invalid data from 'v':  the readable size is '_Old_5`2' bytes, but '4' bytes may be read.: Lines: 427, 430, 432, 436, 437, 438, 439
+                            + ' /wd28251'   // warning C28251: Inconsistent annotation for '_setjmp': this instance has no annotations. See <no file>(0).
+                            + ' /wd26051'   // Function with irreducible control flow graph.
+                            + ' /wd4365'
+                            + ' /wd4355'
+                            + ' /wd4191'
+                            + ' /Wv:18'     // Allow implicit int to float conversions.
+                            + ' -O2'        // Compile with optimizations even in debug to improve performance
+                          ]
+
+    // Library
+    //--------------------------------------------------------------------------
+    .ProjectConfigs = {}
+    ForEach( .BuildConfig in .BuildConfigs )
+    {
+        Using( .BuildConfig )
+
+        .OutputBase + '\$Platform$-$BuildConfigName$'
+
+        Using( ."imguiOptions_$Platform$" )
+
+        // Static Library
+        ObjectList( '$ProjectName$-Lib-$Platform$-$BuildConfigName$' )
+        {
+            // Input - Only build specific files we use
+            .CompilerInputPath          = {
+                                            '$imguiBasePath$'
+                                          }
+            .CompilerInputPathRecurse = false             
+            .CompilerInputFiles         = {
+                                            '$imguiBasePath$/backends/imgui_impl_sdl.cpp',
+                                            '$imguiBasePath$/backends/imgui_impl_opengl3.cpp',
+                                            '$imguiBasePath$/misc/freetype/imgui_freetype.cpp'
+                                          }
+            // Options
+            .CompilerOptions            = .CompilerOptionsC
+                                        + .imguiIncludePaths
+                                        + .FreeTypeIncludePaths
+                                        + .imguiCompilerOptions
+
+                                        #if __WINDOWS__
+                                            // Remove flags that disable opimizations
+                                            - ' /Od'
+                                            - ' /RTC1'
+
+                                            // Disable clang-cl static analysis if enabled for this config
+                                            // (we won't fix warnings in 3rd party code)
+                                            - ' --analyze'
+                                        #else
+                                            - ' -O0'
+                                        #endif
+                                        
+                                        // Disable warnings if using Clang. There are too many warnings
+                                        // and they differ with every version of Clang
+                                        - ' -Wall'
+                                        - ' -Werror'
+                                        - ' -Wfatal-errors'
+                                        - ' -Wextra'
+                                        - ' -Wshadow'
+                                        - ' -Weverything'
+
+            // Output
+            .CompilerOutputPath         = '$OutputBase$/External/$ProjectName$/'
+        }
+        Alias( '$ProjectName$-$Platform$-$BuildConfigName$' ) { .Targets = '$ProjectName$-Lib-$Platform$-$BuildConfigName$' }
+
+        #if __WINDOWS__
+            .ProjectConfig              = [ Using( .'Project_$Platform$_$BuildConfigName$' ) .Target = '$ProjectName$-$Platform$-$BuildConfigName$' ]
+            ^ProjectConfigs             + .ProjectConfig
+        #endif
+    }
+
+    // Aliases
+    //--------------------------------------------------------------------------
+    CreateCommonAliases( .ProjectName )
+
+    // Visual Studio Project Generation
+    //--------------------------------------------------------------------------
+    #if __WINDOWS__
+        .ExtraOptions   = [
+                            .ProjectFiles = 'External/imgui/imgui.bff'
+                          ]
+        CreateVCXProject_Lib( .ProjectName, .ProjectPath, .ProjectConfigs, .ExtraOptions )
+    #endif
+
+}

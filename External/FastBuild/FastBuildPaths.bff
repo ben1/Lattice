@@ -1,0 +1,3 @@
+.FastBuildBasePath = 'External\FastBuild\1.08'
+.FastBuildIncludes = ' "-I$FastBuildBasePath$/Code"'
+.FBuildExe = '$FastBuildBasePath$\Bin\win32-x64\FBuild.exe'
