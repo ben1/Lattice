@@ -55,7 +55,10 @@
     // Visual Studio Project Generation
     //--------------------------------------------------------------------------
     #if __WINDOWS__
-        .ExtraOptions = [ .ProjectInputPathsExclude = { '$ProjectPath$\CoreTest\' } ]
+        // Don't include the Core.bff from FastBuild, use the one we made.
+        .ExtraOptions = [ .ProjectInputPathsExclude = { '$ProjectPath$\CoreTest\' }
+                          .ProjectFilesToExclude = { '$ProjectPath$\Core.bff' }
+                          .ProjectFiles = { '$FastBuildBasePath$\..\Core.bff' } ]
         CreateVCXProject_Lib( .ProjectName, .ProjectPath, .ProjectConfigs, .ExtraOptions )
     #endif
 }
