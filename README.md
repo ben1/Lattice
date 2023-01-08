@@ -1,17 +1,6 @@
 # Introduction
 
-This is a small C/C++ app that brings together several opensource libraries for use as a starting point for prototyping or making simple games.
-
-Libraries used are:
-* SDL for graphics/audio
-* Dear ImGui for UI
-* FreeType for font rendering
-* FastBuild for a build system as well as for many low level utilities:
-    * containers / file / network / memory / profiling / testing / multi-threading / reflection.
-
-OpenGL3 is the default rendering backend, but can be changed to anything SDL supports.
-
-Everything is statically compiled, with unused functionality optimized out.
+This is a prototype game.
 
 # Building
 
