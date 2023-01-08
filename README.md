@@ -20,7 +20,7 @@ Currently Visual Studio on Windows is supported, but GCC/Clang/OSX/Linux would b
 ## Visual Studio
 
 1. To generate the solution, run:
-> External\FastBuild\1.08\Bin\win32-x64\FBuild.exe solution
+> External\FastBuild\Bin\win32-x64\FBuild.exe solution
 
 If the scripts failed to find  the locally installed versions of VS or WindowsSDK, the errors will tell you where in the script to set the path.
 
