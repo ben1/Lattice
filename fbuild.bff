@@ -184,7 +184,8 @@ Settings
 #include "External/imgui/imgui.bff"
 
 // App
-#include "Code/App/App.bff"
+#include "Code/Sim/Sim.bff"
+#include "Code/App/App.bff" // Must be last because it depends on previous projects.
 
 // Aliases : All-$Platform$-$Config$
 //------------------------------------------------------------------------------
@@ -303,7 +304,7 @@ Alias( 'All+Tests' )
     VSSolution( 'solution' )
     {
         .SolutionOutput     = '$OutputBase$/VisualStudio/Lattice.sln'
-        .SolutionProjects   = { 'App-proj' }
+        .SolutionProjects   = { 'App-proj', 'Sim-proj' }
         .SolutionBuildProject = 'All-proj'
         .SolutionConfigs = {}
         ForEach( .BuildConfig in .BuildConfigs )

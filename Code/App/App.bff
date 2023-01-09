@@ -31,8 +31,10 @@
             // Output
             .CompilerOutputPath         = '$OutputBase$/$ProjectPath$/'
 
-            .CompilerOptions            + '$imguiIncludePaths$'
+            .CompilerOptions            + ' "-ICode"'
                                         + '$FastBuildIncludes$'
+                                        + '$imguiIncludePaths$'
+                                        
         }
 
         // Windows Manifest
@@ -50,6 +52,7 @@
             .Libraries                  = {
                                             '$ProjectName$-Lib-$Platform$-$BuildConfigName$'
                                             'Core-Lib-$Platform$-$BuildConfigName$',
+                                            'Sim-Lib-$Platform$-$BuildConfigName$',
                                             'FreeType-Lib-$Platform$-$BuildConfigName$',
                                             'imgui-Lib-$Platform$-$BuildConfigName$',
                                             'LZ4-Lib-$Platform$-$BuildConfigName$',
