@@ -10,19 +10,8 @@
 
     // Target/Compiler specific options
     .imguiOptions_x64     = [
-        .imguiCompilerOptions = ' /wd6239'    // (<non-zero constant> && <expression>) always evaluates to the result of <expression>.  Did you intend to use the bitwise-and operator?
-                            + ' /wd6240'    // (<expression> && <non-zero constant>) always evaluates to the result of <expression>.  Did you intend to use the bitwise-and operator?
-                            + ' /wd6262'    // Function uses '%u' bytes of stack:  exceeds /analyze:stacksize '16384'.  Consider moving some data to heap.
-                            + ' /wd6326'    // Potential comparison of a constant with another constant.
-                            + ' /wd6385'    // Reading invalid data from 'v':  the readable size is '_Old_5`2' bytes, but '4' bytes may be read.: Lines: 427, 430, 432, 436, 437, 438, 439
-                            + ' /wd28251'   // warning C28251: Inconsistent annotation for '_setjmp': this instance has no annotations. See <no file>(0).
-                            + ' /wd26051'   // Function with irreducible control flow graph.
-                            + ' /wd4365'
-                            + ' /wd4355'
-                            + ' /wd4191'
-                            + ' /Wv:18'     // Allow implicit int to float conversions.
-                            + ' -O2'        // Compile with optimizations even in debug to improve performance
-                          ]
+                                .imguiCompilerOptions = ' -O2'        // Compile with optimizations even in debug to improve performance
+                            ]
 
     // Library
     //--------------------------------------------------------------------------
@@ -55,6 +44,10 @@
                                         + .imguiCompilerOptions
 
                                         #if __WINDOWS__
+                                            // Remove warnings and warnings as errors
+                                            - ' /Wall'
+                                            - ' /WX'
+
                                             // Remove flags that disable opimizations
                                             - ' /Od'
                                             - ' /RTC1'
@@ -63,17 +56,15 @@
                                             // (we won't fix warnings in 3rd party code)
                                             - ' --analyze'
                                         #else
+                                            - ' -Wall'
+                                            - ' -Werror'
+                                            - ' -Wfatal-errors'
+                                            - ' -Wextra'
+                                            - ' -Wshadow'
+                                            - ' -Weverything'
+
                                             - ' -O0'
                                         #endif
-                                        
-                                        // Disable warnings if using Clang. There are too many warnings
-                                        // and they differ with every version of Clang
-                                        - ' -Wall'
-                                        - ' -Werror'
-                                        - ' -Wfatal-errors'
-                                        - ' -Wextra'
-                                        - ' -Wshadow'
-                                        - ' -Weverything'
 
             // Output
             .CompilerOutputPath         = '$OutputBase$/External/$ProjectName$/'

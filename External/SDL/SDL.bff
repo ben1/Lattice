@@ -1,39 +1,12 @@
 .SDLBasePath        = 'External/SDL/2.26.2'
-.SDLIncludePaths = ' "-I$SDLBasePath$/include"'
+.SDLIncludePaths = ' "/external:I$SDLBasePath$/include"'
 {
     .ProjectName        = 'SDL'
     .ProjectPath        = '$SDLBasePath$'
 
     // Target/Compiler specific options
     .SDLOptions_x64     = [
-                            .SDLCompilerOptions = ' /wd4028'    // formal parameter 3 different from declaration
-                                                + ' /wd4100'    // unreferenced parameter/wd
-                                                + ' /wd4127'    // conditional expression is constant
-                                                + ' /wd4152'    // nonstandard extension used: pointer conversion in expression
-                                                + ' /wd4200'    // nonstandard extension used: zero size struct/union
-                                                + ' /wd4201'    // nonstandard extension used: nameless struct/union
-                                                + ' /wd4242'    // possible loss of data
-                                                + ' /wd4244'    // possible loss of data
-                                                + ' /wd4245'    // conversion, signed/unsigned mismatch
-                                                + ' /wd4310'    // cast truncates constant value
-                                                + ' /wd4388'    // '!=': signed/unsigned mismatch
-                                                + ' /wd4389'    // '==': signed/unsigned mismatch
-                                                + ' /wd4459'    // declaration hides global declaration
-                                                + ' /wd4464'    // .. in relative include path 
-                                                + ' /wd4548'    // expression before comma has no effect 
-                                                + ' /wd4701'    // potentially uninitialized local variable used
-                                                + ' /wd4702'    // unreachable code
-                                                + ' /wd4706'    // assignment within conditional
-                                                + ' /wd4723'    // potential divide by zero
-                                                + ' /wd6239'    // (<non-zero constant> && <expression>) always evaluates to the result of <expression>.  Did you intend to use the bitwise-and operator?
-                                                + ' /wd6240'    // (<expression> && <non-zero constant>) always evaluates to the result of <expression>.  Did you intend to use the bitwise-and operator?
-                                                + ' /wd6262'    // Function uses '%u' bytes of stack:  exceeds /analyze:stacksize '16384'.  Consider moving some data to heap.
-                                                + ' /wd6326'    // Potential comparison of a constant with another constant.
-                                                + ' /wd6385'    // Reading invalid data from 'v':  the readable size is '_Old_5`2' bytes, but '4' bytes may be read.: Lines: 427, 430, 432, 436, 437, 438, 439
-                                                + ' /wd28251'   // warning C28251: Inconsistent annotation for '_setjmp': this instance has no annotations. See <no file>(0).
-                                                + ' /wd26051'   // Function with irreducible control flow graph.
-
-                                                + ' -O2'        // Compile with optimizations even in debug to improve performance
+                            .SDLCompilerOptions = ' -O2'        // Compile with optimizations even in debug to improve performance
                           ]
 
     // Library
@@ -122,6 +95,10 @@
                                         + .SDLCompilerOptions
 
                                         #if __WINDOWS__
+                                            // Remove warnings and warnings as errors
+                                            - ' /Wall'
+                                            - ' /WX'
+
                                             // Remove flags that disable opimizations
                                             - ' /Od'
                                             - ' /RTC1'
@@ -130,15 +107,15 @@
                                             // (we won't fix warnings in 3rd party code)
                                             - ' --analyze'
                                         #else
+                                            - ' -Wall'
+                                            - ' -Werror'
+                                            - ' -Wfatal-errors'
+                                            - ' -Wextra'
+                                            - ' -Wshadow'
+                                            - ' -Weverything'
+
                                             - ' -O0'
                                         #endif
-                                        
-                                        - ' -Wall'
-                                        - ' -Werror'
-                                        - ' -Wfatal-errors'
-                                        - ' -Wextra'
-                                        - ' -Wshadow'
-                                        - ' -Weverything'
 
             // Output
             .CompilerOutputPath         = '$OutputBase$/External/$ProjectName$/'
