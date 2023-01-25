@@ -29,10 +29,10 @@
         //
         // Use Visual Studio installation
         //
-        #if file_exists( "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.31.31103/bin/Hostx64/x64/cl.exe" )
+        #if file_exists( "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.34.31933/bin/Hostx64/x64/cl.exe" )
             // v17.1.4
             .VS2022_BasePath        = 'C:/Program Files/Microsoft Visual Studio/2022/Community/VC'
-            .VS2022_Version         = '14.31.31103'
+            .VS2022_Version         = '14.34.31933'
             .VS2022_MSC_VER         = '1931'
         #else
             //
