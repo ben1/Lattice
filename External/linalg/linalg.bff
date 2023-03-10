@@ -1,0 +1,4 @@
+// linalg
+//------------------------------------------------------------------------------
+.linalgBasePath        = 'External/linalg/a3e87da'
+.linalgIncludePaths    = ' "-I$linalgBasePath$"'
