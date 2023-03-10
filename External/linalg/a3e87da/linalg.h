@@ -359,7 +359,11 @@ namespace linalg
     template<class T> struct converter<mat<T,2,2>, identity_t> { constexpr mat<T,2,2> operator() (identity_t) const { return {{1,0},{0,1}}; } };
     template<class T> struct converter<mat<T,3,3>, identity_t> { constexpr mat<T,3,3> operator() (identity_t) const { return {{1,0,0},{0,1,0},{0,0,1}}; } };
     template<class T> struct converter<mat<T,4,4>, identity_t> { constexpr mat<T,4,4> operator() (identity_t) const { return {{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}}; } };
-    constexpr identity_t identity {1};
+
+#pragma warning( push )
+#pragma warning( disable : 5264)
+    constexpr identity_t identity{ 1 };
+#pragma warning( pop ) 
 
     // Produce a scalar by applying f(A,B) -> A to adjacent pairs of elements from a vec/mat in left-to-right/column-major order (matching the associativity of arithmetic and logical operators)
     template<class F, class A, class B> constexpr A fold(F f, A a, const vec<B,1> & b) { return f(a, b.x); }
