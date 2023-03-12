@@ -304,7 +304,7 @@ Alias( 'All+Tests' )
 
     VSSolution( 'solution' )
     {
-        .SolutionOutput     = '$OutputBase$/VisualStudio/Lattice.sln'
+        .SolutionOutput     = '$OutputBase$/VisualStudio/Stronghold.sln'
         .SolutionProjects   = { 'App-proj', 'Sim-proj' }
         .SolutionBuildProject = 'All-proj'
         .SolutionConfigs = {}
