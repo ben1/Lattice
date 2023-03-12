@@ -1,0 +1,4 @@
+// GeometricTools
+//------------------------------------------------------------------------------
+.GeometricToolsBasePath        = 'External/GeometricTools/54eb7c0'
+.GeometricToolsIncludePaths    = ' "-I$GeometricToolsBasePath$"'

@@ -34,7 +34,7 @@
             .CompilerOptions            + ' "-ICode"'
                                         + '$FastBuildIncludes$'
                                         + '$imguiIncludePaths$'
-                                        + '$linalgIncludePaths$'
+                                        + '$GeometricToolsIncludePaths$'
                                         
         }
 

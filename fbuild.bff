@@ -179,7 +179,7 @@ Settings
 // External
 #include "External/FastBuild/Core.bff"
 #include "External/FreeType/FreeType.bff"
-#include "External/linalg/linalg.bff"
+#include "External/GeometricTools/GeometricTools.bff"
 #include "External/LZ4/LZ4.bff"
 #include "External/SDL/SDL.bff"
 #include "External/imgui/imgui.bff"
